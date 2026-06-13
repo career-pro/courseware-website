@@ -1,22 +1,37 @@
 import { NextResponse } from 'next/server';
+import { join } from 'path';
+import sharp from 'sharp';
+
+const fontPath = join(process.cwd(), 'src/fonts/watermark-font.otf');
 
 export async function GET() {
   const results: Record<string, boolean | string> = {};
 
   results.hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
   results.hasKvUrl = !!process.env.KV_REST_API_URL;
-  results.hasUpstashUrl = !!process.env.UPSTASH_REDIS_REST_URL;
+  results.isVercel = !!process.env.VERCEL;
+
+  const { existsSync } = await import('fs');
+  results.fontFileExists = existsSync(fontPath);
 
   try {
-    const sharp = await import('sharp');
-    results.sharpLoaded = true;
-    results.sharpVersion = sharp.default?.versions?.sharp || 'unknown';
+    const textImage = await sharp({
+      text: {
+        text: '@都在这了',
+        fontfile: fontPath,
+        fontsize: 48,
+        rgba: true,
+      },
+    })
+      .png()
+      .toBuffer();
+    results.textRenderWorks = textImage.length > 0;
 
-    const svg = `<svg width="100" height="100"><text x="10" y="50" font-size="20">test</text></svg>`;
-    const result = await sharp.default(Buffer.from(svg)).png().toBuffer();
-    results.sharpWorks = result.length > 0;
+    const meta = await sharp(textImage).metadata();
+    results.textImageWidth = meta.width || 0;
+    results.textImageHeight = meta.height || 0;
   } catch (e: any) {
-    results.sharpError = e.message || String(e);
+    results.textRenderError = e.message || String(e);
   }
 
   return NextResponse.json(results);
