@@ -160,25 +160,24 @@ export default function CourseDetail() {
               </div>
             )}
 
-            {course.isFree || unlockedFiles.has(courseId) ? (
-              <a
-                href={course.downloadLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full bg-blue-500 text-white py-4 rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg"
-              >
-                <Download className="w-5 h-5" />
-                <span>下载资源</span>
-              </a>
-            ) : (
-              <button
-                onClick={() => setShowUnlockModal(true)}
-                className="flex items-center justify-center gap-2 w-full bg-yellow-500 text-white py-4 rounded-lg hover:bg-yellow-600 transition-colors font-medium text-lg"
-              >
-                <Unlock className="w-5 h-5" />
-                <span>输入兑换码解锁</span>
-              </button>
-            )}
+            <div className="border-t border-gray-100 pt-6">
+              {course.isFree || unlockedFiles.has(courseId) ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                  <h3 className="text-sm font-medium text-blue-600 mb-2">下载链接</h3>
+                  <p className="text-gray-800 whitespace-pre-wrap break-all text-sm leading-relaxed">
+                    {course.downloadLink}
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowUnlockModal(true)}
+                  className="flex items-center justify-center gap-2 w-full bg-yellow-500 text-white py-4 rounded-lg hover:bg-yellow-600 transition-colors font-medium text-lg"
+                >
+                  <Unlock className="w-5 h-5" />
+                  <span>输入兑换码解锁下载链接</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

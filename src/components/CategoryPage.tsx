@@ -191,17 +191,16 @@ export default function CategoryPage({ category, categoryName }: CategoryPagePro
                     ))}
                   </div>
 
-                  {course.isFree || unlockedFiles.has(course.id) ? (
-                    <a
-                      href={course.downloadLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center gap-2 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                    >
+                  {course.isFree ? (
+                    <div className="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-600 py-2 rounded-lg text-sm font-medium">
                       <Download className="w-4 h-4" />
-                      <span>下载资源</span>
-                    </a>
+                      <span>点击查看下载链接</span>
+                    </div>
+                  ) : unlockedFiles.has(course.id) ? (
+                    <div className="flex items-center justify-center gap-2 w-full bg-green-50 text-green-600 py-2 rounded-lg text-sm font-medium">
+                      <Download className="w-4 h-4" />
+                      <span>已解锁 · 点击查看链接</span>
+                    </div>
                   ) : (
                     <button
                       onClick={(e) => {
