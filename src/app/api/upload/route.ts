@@ -1,34 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync } from 'fs';
 import sharp from 'sharp';
 import { put } from '@vercel/blob';
 
 const fontPath = join(process.cwd(), 'src/fonts/watermark-font.otf');
-const fontBase64 = readFileSync(fontPath).toString('base64');
-const fontDataUri = `data:font/opentype;base64,${fontBase64}`;
 
-function createWatermarkSvg(width: number, height: number) {
-  const fontSize = Math.max(width, height) * 0.1;
+async function addWatermark(buffer: Buffer, width: number, height: number) {
+  const fontSize = Math.round(Math.max(width, height) * 0.1);
   const text = '@都在这了';
 
-  return Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <defs><style>
-      @font-face { font-family: 'WM'; src: url(${fontDataUri}); }
-    </style></defs>
-    <text
-      x="50%"
-      y="50%"
-      text-anchor="middle"
-      dominant-baseline="central"
-      transform="rotate(-25, ${width / 2}, ${height / 2})"
-      font-size="${fontSize}px"
-      font-weight="bold"
-      fill="rgba(0,0,0,0.12)"
-      font-family="WM"
-    >${text}</text>
-  </svg>`);
+  const textImage = await sharp({
+    text: {
+      text,
+      fontfile: fontPath,
+      fontsize: fontSize,
+      rgba: true,
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const textMeta = await sharp(textImage).metadata();
+  const tw = textMeta.width || 0;
+  const th = textMeta.height || 0;
+
+  const extended = await sharp({
+    create: {
+      width,
+      height,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      {
+        input: textImage,
+        left: Math.floor((width - tw) / 2),
+        top: Math.floor((height - th) / 2),
+      },
+    ])
+    .png()
+    .toBuffer();
+
+  const rotated = await sharp(extended)
+    .rotate(-25, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+
+  return sharp(buffer)
+    .composite([{ input: rotated, top: 0, left: 0 }])
+    .toBuffer();
 }
 
 export async function POST(request: NextRequest) {
@@ -49,13 +72,7 @@ export async function POST(request: NextRequest) {
     const metadata = await sharp(buffer).metadata();
     const { width = 800, height = 600 } = metadata;
 
-    const watermarkSvg = createWatermarkSvg(width, height);
-
-    const watermarked = await sharp(buffer)
-      .composite([
-        { input: watermarkSvg, top: 0, left: 0 },
-      ])
-      .toBuffer();
+    const watermarked = await addWatermark(buffer, width, height);
 
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
 
