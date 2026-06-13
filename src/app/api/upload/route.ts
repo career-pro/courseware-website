@@ -71,6 +71,7 @@ async function addWatermark(buffer: Buffer, width: number, height: number) {
         top: Math.floor((height - rh) / 2),
       },
     ])
+    .linear(1, 0, 1, 0, 1, 0, 0.12, 0)
     .png()
     .toBuffer();
 
