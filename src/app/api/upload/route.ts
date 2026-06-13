@@ -71,6 +71,7 @@ async function addWatermark(buffer: Buffer, width: number, height: number) {
         top: Math.floor((height - rh) / 2),
       },
     ])
+    // @ts-expect-error multi-channel linear supported at runtime
     .linear(1, 0, 1, 0, 1, 0, 0.12, 0)
     .png()
     .toBuffer();
