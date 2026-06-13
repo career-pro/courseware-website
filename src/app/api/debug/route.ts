@@ -15,6 +15,7 @@ export async function GET() {
   results.fontFileExists = existsSync(fontPath);
 
   try {
+    // @ts-expect-error fontSize exists at runtime in sharp 0.33+
     const textImage = await sharp({
       text: {
         text: '@都在这了',

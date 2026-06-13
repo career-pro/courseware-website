@@ -11,6 +11,7 @@ async function addWatermark(buffer: Buffer, width: number, height: number) {
   const fontSize = Math.round(Math.max(width, height) * 0.1);
   const text = '@都在这了';
 
+  // @ts-expect-error fontSize exists at runtime in sharp 0.33+
   const textImage = await sharp({
     text: {
       text,
