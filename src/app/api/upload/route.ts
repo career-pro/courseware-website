@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import sharp from 'sharp';
 import { put } from '@vercel/blob';
+
+const fontPath = join(process.cwd(), 'src/fonts/watermark-font.otf');
+const fontBase64 = readFileSync(fontPath).toString('base64');
+const fontDataUri = `data:font/opentype;base64,${fontBase64}`;
 
 function createWatermarkSvg(width: number, height: number) {
   const fontSize = Math.max(width, height) * 0.1;
   const text = '@都在这了';
 
   return Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <defs><style>
+      @font-face { font-family: 'WM'; src: url(${fontDataUri}); }
+    </style></defs>
     <text
       x="50%"
       y="50%"
@@ -19,7 +26,7 @@ function createWatermarkSvg(width: number, height: number) {
       font-size="${fontSize}px"
       font-weight="bold"
       fill="rgba(0,0,0,0.12)"
-      font-family="sans-serif"
+      font-family="WM"
     >${text}</text>
   </svg>`);
 }
