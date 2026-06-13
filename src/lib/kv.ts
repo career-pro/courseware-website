@@ -3,7 +3,7 @@ import { RedeemCode, Course } from '@/types';
 let mockCodes: Record<string, RedeemCode> = {};
 let mockCourses: Course[] = [];
 
-const isLocal = !process.env.KV_REST_API_URL;
+const isLocal = !process.env.KV_REST_API_URL && !process.env.UPSTASH_REDIS_REST_URL;
 
 export const kv = {
   async get<T>(key: string): Promise<T | null> {
