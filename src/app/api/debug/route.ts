@@ -5,7 +5,7 @@ import sharp from 'sharp';
 const fontPath = join(process.cwd(), 'src/fonts/watermark-font.otf');
 
 export async function GET() {
-  const results: Record<string, boolean | string> = {};
+  const results: Record<string, boolean | string | number> = {};
 
   results.hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
   results.hasKvUrl = !!process.env.KV_REST_API_URL;
