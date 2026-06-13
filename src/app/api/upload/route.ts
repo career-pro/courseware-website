@@ -27,7 +27,36 @@ async function addWatermark(buffer: Buffer, width: number, height: number) {
   const tw = textMeta.width || 0;
   const th = textMeta.height || 0;
 
-  const extended = await sharp({
+  const diag = Math.ceil(Math.sqrt(tw * tw + th * th)) + 40;
+
+  const padded = await sharp({
+    create: {
+      width: diag,
+      height: diag,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      {
+        input: textImage,
+        left: Math.floor((diag - tw) / 2),
+        top: Math.floor((diag - th) / 2),
+      },
+    ])
+    .png()
+    .toBuffer();
+
+  const rotated = await sharp(padded)
+    .rotate(-25, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+
+  const rotMeta = await sharp(rotated).metadata();
+  const rw = rotMeta.width || 0;
+  const rh = rotMeta.height || 0;
+
+  const overlay = await sharp({
     create: {
       width,
       height,
@@ -37,21 +66,16 @@ async function addWatermark(buffer: Buffer, width: number, height: number) {
   })
     .composite([
       {
-        input: textImage,
-        left: Math.floor((width - tw) / 2),
-        top: Math.floor((height - th) / 2),
+        input: rotated,
+        left: Math.floor((width - rw) / 2),
+        top: Math.floor((height - rh) / 2),
       },
     ])
     .png()
     .toBuffer();
 
-  const rotated = await sharp(extended)
-    .rotate(-25, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .png()
-    .toBuffer();
-
   return sharp(buffer)
-    .composite([{ input: rotated, top: 0, left: 0 }])
+    .composite([{ input: overlay, top: 0, left: 0 }])
     .toBuffer();
 }
 
