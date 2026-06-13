@@ -15,7 +15,7 @@ async function addWatermark(buffer: Buffer, width: number, height: number) {
     text: {
       text,
       fontfile: fontPath,
-      fontsize: fontSize,
+      fontSize: fontSize,
       rgba: true,
     },
   })

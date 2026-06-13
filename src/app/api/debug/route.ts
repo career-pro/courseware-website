@@ -19,7 +19,7 @@ export async function GET() {
       text: {
         text: '@都在这了',
         fontfile: fontPath,
-        fontsize: 48,
+        fontSize: 48,
         rgba: true,
       },
     })
