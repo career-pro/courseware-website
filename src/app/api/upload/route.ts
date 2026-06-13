@@ -24,8 +24,6 @@ function createWatermarkSvg(width: number, height: number) {
   </svg>`);
 }
 
-const isProduction = !!process.env.BLOB_READ_WRITE_TOKEN;
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -52,12 +50,30 @@ export async function POST(request: NextRequest) {
       ])
       .toBuffer();
 
-    if (isProduction) {
-      const blob = await put(`uploads/${Date.now()}.png`, watermarked, {
-        access: 'public',
-        contentType: 'image/png',
-      });
-      return NextResponse.json({ success: true, url: blob.url });
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+
+    if (blobToken) {
+      try {
+        const blob = await put(`uploads/${Date.now()}.png`, watermarked, {
+          access: 'public',
+          contentType: 'image/png',
+        });
+        return NextResponse.json({ success: true, url: blob.url });
+      } catch (blobError) {
+        const msg = blobError instanceof Error ? blobError.message : 'Blob upload failed';
+        console.error('Blob 上传失败:', blobError);
+        return NextResponse.json(
+          { success: false, error: `Blob 上传失败: ${msg}` },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        { success: false, error: '未配置 Blob Storage，请在 Vercel 项目 Settings > Environment Variables 中添加 BLOB_READ_WRITE_TOKEN' },
+        { status: 500 }
+      );
     }
 
     const filename = `${Date.now()}-${file.name.replace(/\.[^.]+$/, '')}.png`;
