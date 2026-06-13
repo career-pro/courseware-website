@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Search, Unlock, Download, Filter } from 'lucide-react';
+import { Course } from '@/types';
 
 interface CategoryPageProps {
   category: 'meetings' | 'courseware' | 'picture-books';
@@ -12,7 +13,7 @@ interface CategoryPageProps {
 
 export default function CategoryPage({ category, categoryName }: CategoryPageProps) {
   const router = useRouter();
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [unlockedFiles, setUnlockedFiles] = useState<Set<string>>(new Set());
   const [redeemCode, setRedeemCode] = useState('');
