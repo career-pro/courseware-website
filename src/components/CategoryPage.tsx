@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Search, Unlock, Download, Filter } from 'lucide-react';
 import { Course } from '@/types';
+import { useUnlocked } from '@/lib/useUnlocked';
 
 interface CategoryPageProps {
   category: 'meetings' | 'courseware' | 'picture-books';
@@ -15,7 +16,7 @@ export default function CategoryPage({ category, categoryName }: CategoryPagePro
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [unlockedFiles, setUnlockedFiles] = useState<Set<string>>(new Set());
+  const { unlock, isUnlocked } = useUnlocked();
   const [redeemCode, setRedeemCode] = useState('');
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState('');
@@ -66,7 +67,7 @@ export default function CategoryPage({ category, categoryName }: CategoryPagePro
       const data = await response.json();
 
       if (data.success) {
-        setUnlockedFiles((prev) => new Set(prev).add(selectedCourseId));
+        unlock(selectedCourseId);
         setShowUnlockModal(false);
         setRedeemCode('');
         setCodeError('');
@@ -196,7 +197,7 @@ export default function CategoryPage({ category, categoryName }: CategoryPagePro
                       <Download className="w-4 h-4" />
                       <span>点击查看下载链接</span>
                     </div>
-                  ) : unlockedFiles.has(course.id) ? (
+                  ) : isUnlocked(course.id) ? (
                     <div className="flex items-center justify-center gap-2 w-full bg-green-50 text-green-600 py-2 rounded-lg text-sm font-medium">
                       <Download className="w-4 h-4" />
                       <span>已解锁 · 点击查看链接</span>

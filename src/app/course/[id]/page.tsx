@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Download, Unlock, X } from 'lucide-react';
+import { ArrowLeft, Unlock, X } from 'lucide-react';
+import { useUnlocked } from '@/lib/useUnlocked';
 
 export default function CourseDetail() {
   const params = useParams();
@@ -12,7 +13,7 @@ export default function CourseDetail() {
 
   const [course, setCourse] = useState<any>(null);
   const [redeemCode, setRedeemCode] = useState('');
-  const [unlockedFiles, setUnlockedFiles] = useState<Set<string>>(new Set());
+  const { unlock, isUnlocked } = useUnlocked();
   const [codeError, setCodeError] = useState('');
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [lightboxImage, setLightboxImage] = useState('');
@@ -53,7 +54,7 @@ export default function CourseDetail() {
       const data = await response.json();
 
       if (data.success) {
-        setUnlockedFiles((prev) => new Set(prev).add(courseId));
+        unlock(courseId);
         setShowUnlockModal(false);
         setRedeemCode('');
         setCodeError('');
@@ -161,7 +162,7 @@ export default function CourseDetail() {
             )}
 
             <div className="border-t border-gray-100 pt-6">
-              {course.isFree || unlockedFiles.has(courseId) ? (
+              {course.isFree || isUnlocked(courseId) ? (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
                   <h3 className="text-sm font-medium text-blue-600 mb-2">下载链接</h3>
                   <p className="text-gray-800 whitespace-pre-wrap break-all text-sm leading-relaxed">
