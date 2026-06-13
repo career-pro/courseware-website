@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@vercel/kv": "^3.0.0",
+    "bcryptjs": "^3.0.3",
+    "lucide-react": "^1.18.0"
+  }
+}

@@ -1,0 +1,81 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
+import sharp from 'sharp';
+import { put } from '@vercel/blob';
+
+function createWatermarkSvg(width: number, height: number) {
+  const fontSize = Math.max(width, height) * 0.1;
+  const text = '@都在这了';
+
+  return Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <text
+      x="50%"
+      y="50%"
+      text-anchor="middle"
+      dominant-baseline="central"
+      transform="rotate(-25, ${width / 2}, ${height / 2})"
+      font-size="${fontSize}px"
+      font-weight="bold"
+      fill="rgba(0,0,0,0.12)"
+      font-family="sans-serif"
+    >${text}</text>
+  </svg>`);
+}
+
+const isProduction = !!process.env.BLOB_READ_WRITE_TOKEN;
+
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return NextResponse.json(
+        { success: false, error: '没有上传文件' },
+        { status: 400 }
+      );
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const metadata = await sharp(buffer).metadata();
+    const { width = 800, height = 600 } = metadata;
+
+    const watermarkSvg = createWatermarkSvg(width, height);
+
+    const watermarked = await sharp(buffer)
+      .composite([
+        { input: watermarkSvg, top: 0, left: 0 },
+      ])
+      .toBuffer();
+
+    if (isProduction) {
+      const blob = await put(`uploads/${Date.now()}.png`, watermarked, {
+        access: 'public',
+        contentType: 'image/png',
+      });
+      return NextResponse.json({ success: true, url: blob.url });
+    }
+
+    const filename = `${Date.now()}-${file.name.replace(/\.[^.]+$/, '')}.png`;
+    const publicDir = join(process.cwd(), 'public');
+
+    if (!existsSync(publicDir)) {
+      await mkdir(publicDir, { recursive: true });
+    }
+
+    const filepath = join(publicDir, filename);
+    await writeFile(filepath, watermarked);
+
+    return NextResponse.json({ success: true, url: `/${filename}` });
+  } catch (error) {
+    console.error('上传失败:', error);
+    return NextResponse.json(
+      { success: false, error: '上传失败' },
+      { status: 500 }
+    );
+  }
+}
