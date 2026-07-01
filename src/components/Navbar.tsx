@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { categories } from '@/lib/constants';
-import { BookOpen, MessageCircle, Copy, Check } from 'lucide-react';
+import { BookOpen, MessageCircle, Copy, Check, Pencil } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -43,6 +43,18 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
+
+            <Link
+              href="/editor"
+              className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                pathname === '/editor'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:bg-blue-100'
+              }`}
+            >
+              <Pencil className="w-4 h-4" />
+              <span>HTML编辑器</span>
+            </Link>
 
             <button
               onClick={() => setShowContact(true)}
