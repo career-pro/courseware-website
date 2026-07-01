@@ -421,7 +421,7 @@ const editorCSS = `
 
 /* ── HTML ── */
 const editorHTML = `
-<body class="editor-body">
+<div class="editor-body">
 
 <header class="editor-toolbar">
   <span class="editor-toolbar-brand">&#9881; HTML 可视化编辑器</span>
@@ -519,7 +519,7 @@ const editorHTML = `
 <div class="editor-toast-container" id="toastContainer"></div>
 <input type="file" id="editor-fileInput" accept=".html,.htm">
 
-</body>
+</div>
 `;
 
 /* ── JS ── */
