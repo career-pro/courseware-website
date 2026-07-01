@@ -10,14 +10,26 @@ export default function EditorPage() {
 
     const wrapper = document.getElementById('editor-root');
     if (!wrapper) return;
-    wrapper.innerHTML = editorHTML;
 
+    // Explicit height: percentage heights fail through flex parents without explicit height
+    const parent = wrapper.parentElement;
+    if (parent) {
+      const setHeight = () => { wrapper.style.height = parent.clientHeight + 'px'; };
+      setHeight();
+      window.addEventListener('resize', setHeight);
+      wrapper.innerHTML = editorHTML;
+      const editor = new EditorApp();
+      (window as any).__editorInstance = editor;
+      return () => {
+        style.remove();
+        window.removeEventListener('resize', setHeight);
+      };
+    }
+
+    wrapper.innerHTML = editorHTML;
     const editor = new EditorApp();
     (window as any).__editorInstance = editor;
-
-    return () => {
-      style.remove();
-    };
+    return () => { style.remove(); };
   }, []);
 
   return <div id="editor-root" style={{ height: '100%', display: 'flex', flexDirection: 'column' }} />;
