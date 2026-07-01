@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Unlock, X } from 'lucide-react';
+import { ArrowLeft, Unlock, X, Copy, Check } from 'lucide-react';
 import { useUnlocked } from '@/lib/useUnlocked';
 
 export default function CourseDetail() {
@@ -17,6 +17,7 @@ export default function CourseDetail() {
   const [codeError, setCodeError] = useState('');
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [lightboxImage, setLightboxImage] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchCourse();
@@ -63,6 +64,26 @@ export default function CourseDetail() {
       }
     } catch (error) {
       setCodeError('网络错误，请重试');
+    }
+  };
+
+  const handleCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 兜底：老浏览器不支持 clipboard API
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -164,7 +185,25 @@ export default function CourseDetail() {
             <div className="border-t border-gray-100 pt-6">
               {course.isFree || isUnlocked(courseId) ? (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-                  <h3 className="text-sm font-medium text-blue-600 mb-2">下载链接</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-blue-600">下载链接</h3>
+                    <button
+                      onClick={() => handleCopy(course.downloadLink)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>已复制</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>一键复制</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <p className="text-gray-800 whitespace-pre-wrap break-all text-sm leading-relaxed">
                     {course.downloadLink}
                   </p>
